@@ -149,6 +149,29 @@ def compute_analytics(session: SessionState, llm_client) -> AnalyticsOutput:
     if session.analytics_cache is not None:
         return AnalyticsOutput(**session.analytics_cache)
 
+    has_user_messages = any(
+        m.get("role") == "user" for m in session.messages if "_gemini_raw" not in m
+    )
+
+    if not has_user_messages:
+        return AnalyticsOutput(
+            session_id=session.session_id,
+            configuration_interest="undecided",
+            budget_indicated=None,
+            purpose="unknown",
+            timeline=None,
+            interest_level="cold",
+            objections_raised=[],
+            site_visit_status="not_offered",
+            site_visit_datetime=None,
+            follow_up_required=False,
+            follow_up_datetime=None,
+            dnd_opt_out=False,
+            escalated_to_human=False,
+            escalation_reason=None,
+            summary="Session has been initialized; awaiting customer messages.",
+        )
+
     deterministic = _derive_deterministic(session)
     qualitative = _derive_qualitative(session, llm_client)
 

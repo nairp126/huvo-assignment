@@ -290,6 +290,7 @@ async def chat(req: ChatRequest) -> ChatResponse:
             ended=True,
         )
 
+    session.analytics_cache = None  # Invalidate cache so analytics recomputes with latest turns
     response_text = run_agent_loop(session, req.message)
     save_session(session)
 
