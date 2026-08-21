@@ -1,4 +1,5 @@
 .env
+.antigravity/
 __pycache__/
 *.pyc
 *.pyo
@@ -8,3 +9,7 @@ venv/
 dist/
 build/
 .DS_Store
+test_results.json
+run_tests.py
+*.log
+
