@@ -1,6 +1,9 @@
 # Northstar Homes AI Sales Agent
 
-Built for the Huvo AI Forward Deployed Engineer assignment.
+Built for the Huvo AI Assignment.
+
+> [!NOTE]
+> **Testing & Model Verification Note**: Due to API budget constraints, all live test suite runs and recorded transcripts were conducted using **Google Gemini (`gemini-3.5-flash-lite`)**. The application is fully provider-agnostic and includes complete, production-ready client adapters for **OpenAI (`gpt-4o`)** and **Anthropic (`claude-opus-4-5`)**, which can be enabled by updating `LLM_PROVIDER` in `.env`.
 
 ---
 
