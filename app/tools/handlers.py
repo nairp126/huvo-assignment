@@ -1,4 +1,4 @@
-﻿# app/tools/handlers.py
+# app/tools/handlers.py
 """
 Tool execution logic. All handlers are pure functions with typed inputs/outputs,
 independently testable without spinning up FastAPI.
@@ -24,13 +24,14 @@ _ALTERNATIVE_SLOTS: list[dict] = [
 ]
 
 
-def _slot_key(date: str, time_slot: str) -> str:
-    return f"{date.strip().lower()}|{time_slot.strip().lower()}"
+def _is_full_slot(date: str, time_slot: str) -> bool:
+    d = date.strip().lower()
+    t = time_slot.strip().lower()
+    # Matches '2026-08-23|11 am', '23 august|11 am', 'saturday 23 august|11 am', etc.
+    is_aug_23 = ("2026-08-23" in d) or ("23" in d and "aug" in d)
+    is_11_am = ("11" in t and ("am" in t or "subah" in t or "morning" in t)) or (t == "11") or ("11:00" in t)
+    return is_aug_23 and is_11_am
 
-
-# ---------------------------------------------------------------------------
-# Handlers
-# ---------------------------------------------------------------------------
 
 def handle_capture_lead_info(
     session_lead_info: dict,
@@ -44,12 +45,11 @@ def handle_capture_lead_info(
 
 def handle_check_site_visit_availability(date: str, time_slot: str) -> dict:
     """Return availability plus two alternative slots."""
-    key = _slot_key(date, time_slot)
-    available = key not in _FULL_SLOTS
-    # Return alternatives that are NOT the requested slot itself.
+    available = not _is_full_slot(date, time_slot)
+    # Return 2 distinct alternatives from the predefined table
     alternatives = [
         s for s in _ALTERNATIVE_SLOTS
-        if _slot_key(s["date"], s["time_slot"]) != key
+        if not _is_full_slot(s["date"], s["time_slot"])
     ][:2]
     return {"available": available, "alternatives": alternatives}
 
