@@ -43,11 +43,17 @@ class OpenAIClient(LLMClient):
         tool_calls: list[ToolCall] = []
         if message.tool_calls:
             for tc in message.tool_calls:
+                args = {}
+                if tc.function.arguments:
+                    try:
+                        args = json.loads(tc.function.arguments)
+                    except Exception:
+                        args = {}
                 tool_calls.append(
                     ToolCall(
                         id=tc.id,
                         name=tc.function.name,
-                        arguments=json.loads(tc.function.arguments),
+                        arguments=args,
                     )
                 )
 

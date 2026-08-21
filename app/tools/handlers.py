@@ -113,37 +113,48 @@ def dispatch_tool(
     session: object,  # SessionState — typed loosely to avoid circular import
 ) -> dict:
     """Route a tool call to its handler and return the result dict."""
-    if name == "capture_lead_info":
-        return handle_capture_lead_info(
-            session_lead_info,
-            field=arguments["field"],
-            value=arguments["value"],
-        )
-    elif name == "check_site_visit_availability":
-        return handle_check_site_visit_availability(
-            date=arguments["date"],
-            time_slot=arguments["time_slot"],
-        )
-    elif name == "book_site_visit":
-        return handle_book_site_visit(
-            date=arguments["date"],
-            time_slot=arguments["time_slot"],
-            customer_name=arguments["customer_name"],
-            customer_phone=arguments["customer_phone"],
-        )
-    elif name == "schedule_callback":
-        return handle_schedule_callback(
-            preferred_datetime=arguments["preferred_datetime"],
-            reason=arguments.get("reason", ""),
-        )
-    elif name == "log_dnd_optout":
-        result = handle_log_dnd_optout(reason=arguments.get("reason", ""))
-        session.opted_out = True  # deterministic safety net
-        return result
-    elif name == "escalate_to_human":
-        return handle_escalate_to_human(
-            reason=arguments["reason"],
-            details=arguments.get("details", ""),
-        )
-    else:
-        return {"error": f"Unknown tool: {name}"}
+    try:
+        if name == "capture_lead_info":
+            field = str(arguments.get("field", ""))
+            value = str(arguments.get("value", ""))
+            if not field or not value:
+                return {"status": "error", "message": "Missing required field or value"}
+            return handle_capture_lead_info(session_lead_info, field=field, value=value)
+        elif name == "check_site_visit_availability":
+            date = str(arguments.get("date", ""))
+            time_slot = str(arguments.get("time_slot", ""))
+            return handle_check_site_visit_availability(date=date, time_slot=time_slot)
+        elif name == "book_site_visit":
+            date = str(arguments.get("date", ""))
+            time_slot = str(arguments.get("time_slot", ""))
+            customer_name = str(arguments.get("customer_name", "Customer"))
+            customer_phone = str(arguments.get("customer_phone", ""))
+            return handle_book_site_visit(
+                date=date,
+                time_slot=time_slot,
+                customer_name=customer_name,
+                customer_phone=customer_phone,
+            )
+        elif name == "schedule_callback":
+            preferred_datetime = str(arguments.get("preferred_datetime", ""))
+            reason = str(arguments.get("reason", ""))
+            return handle_schedule_callback(
+                preferred_datetime=preferred_datetime,
+                reason=reason,
+            )
+        elif name == "log_dnd_optout":
+            result = handle_log_dnd_optout(reason=str(arguments.get("reason", "")))
+            session.opted_out = True  # deterministic safety net
+            return result
+        elif name == "escalate_to_human":
+            reason = str(arguments.get("reason", "requested_human"))
+            details = str(arguments.get("details", ""))
+            return handle_escalate_to_human(
+                reason=reason,
+                details=details,
+            )
+        else:
+            return {"error": f"Unknown tool: {name}"}
+    except Exception as e:
+        return {"status": "error", "error": f"Tool execution failed: {str(e)}"}
+
